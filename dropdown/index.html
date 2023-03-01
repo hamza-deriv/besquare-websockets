@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deriv Currency</title>
+  </head>
+  <style>
+    #payout_currencies {
+      display: block;
+      text-align: center;
+      padding: 15px;
+      border: 1px solid #999;
+      font-size: 18px;
+      color: #1c87c9;
+      background-color: #eee;
+      border-radius: 5px;
+      box-shadow: 4px 4px #ccc;
+    }
+    #currency_value {
+      border-radius: 5px;
+      border-color: burlywood;
+      margin-top: 15px;
+      height: 30px;
+    }
+    #currency_body-table {
+      border: 1px solid black;
+    }
+    #button_submit {
+      padding: 8px;
+      width: 123px;
+      color: #1c87c9;
+    }
+  </style>
+  <body>
+    <h1>Payout Currency Converter</h1>
+
+    <div id="droplist"></div>
+    <input id="currency_value" type="text" placeholder="Currency Value" />
+    <input type="button" value="Submit" onCLick="exchangeRates()" />
+
+    <table id="currency_table">
+      <tbody id="currency_body-table">
+        <tr>
+          <td>Base currency</td>
+          <td>Currency Value</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <script>
+      var payoutCurrencyValue = '';
+      var rateList = '';
+      var optionPayoutCurrency = `<option value=" ">Select The Available Payout Currencies</option>`;
+      var ws = new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=1089');
+
+      function inp() {
+        var myTable = document.getElementById('currency_table');
+        var currentIndex = myTable.rows.length;
+        var currentRow = myTable.insertRow(-1);
+
+        var baseCurrencyBox =
+          document.getElementById('payout_currencies').value;
+
+        var currenyValueBox = document.getElementById('currency_value').value;
+
+        // New Row for Base Currency
+        var currentCell = currentRow.insertCell(-1);
+        currentCell.innerHTML = baseCurrencyBox;
+
+        // New Row for Base Currency Value
+        currentCell = currentRow.insertCell(-1);
+        currentCell.innerHTML = currenyValueBox;
+      }
+
+      function exchangeRates() {
+        var currencyValue = document.getElementById('currency_value').value;
+
+        ws.send(
+          JSON.stringify({ exchange_rates: 1, base_currency: currencyValue })
+        );
+      }
+
+      // Initial WebSocket Connection
+
+      ws.onopen = function (evt) {
+        ws.send(JSON.stringify({ payout_currencies: 1 }));
+      };
+
+      //  Populating Fields of Available Payout Currency
+      ws.onmessage = function (msg) {
+        var responseData = JSON.parse(msg.data);
+        console.log(responseData);
+
+        if (responseData.msg_type == 'payout_currencies') {
+          payoutCurrencyValue = [...responseData?.payout_currencies];
+
+          if (payoutCurrencyValue.length > 0) {
+            payoutCurrencyValue.forEach((element, index, array) => {
+              optionPayoutCurrency += `<option value="${element}">${element}</option>`;
+            });
+          }
+          let payoutCurrenciesDropdown = `<select id="payout_currencies">${optionPayoutCurrency}</select>`;
+
+          document.getElementById('droplist').innerHTML =
+            payoutCurrenciesDropdown;
+        } else if (responseData.msg_type == 'exchange_rates') {
+          console.log(responseData?.exchange_rates.rates);
+
+          rateList = [...responseData?.exchange_rates.rates];
+
+          var myTable = document.getElementById('currency_table');
+          var currentIndex = myTable.rows.length;
+          var currentRow = myTable.insertRow(-1);
+
+          var baseCurrencyBox = document.getElementById('currency_value').value;
+
+          console.log(rateList);
+
+          if (rateList.length > 0) {
+            // responseData?.rates.forEach((element, index, array) => {
+            //     var currentCell = currentRow.insertCell(-1);
+            //     currentCell.innerHTML=element[index]
+            //     var currentCell = currentRow.insertCell(-1);
+            //     currentCell.innerHTML=element[key]
+            // });
+            // responseData?.exchange_rates.rates.map((response, index)=>{
+            //     // var currentCell = currentRow.insertCell(-1);
+            //     // currentCell.innerHTML=element[index]
+            //     // var currentCell = currentRow.insertCell(-1);
+            //     // currentCell.innerHTML=element[key]
+            //     console.log(response)
+            // })
+          }
+
+          // var currenyValueBox = document.getElementById("currency_value").value;
+
+          // New Row for Base Currency
+          // var currentCell = currentRow.insertCell(-1);
+          // currentCell.innerHTML=baseCurrencyBox;
+
+          // // New Row for Base Currency Value
+          // currentCell = currentRow.insertCell(-1);
+          // currentCell.innerHTML=currenyValueBox;
+        }
+      };
+    </script>
+  </body>
+</html>
