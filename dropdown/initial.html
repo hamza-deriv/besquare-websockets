@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<Style>
+    #price_box{
+        color: white;
+        margin: 10px 0 0;
+    }
+</Style>
+<body>
+    <div id="droptown1">
+        <select id="firstList" onchange="firstListFunc()">
+            <option value="iom">iom</option>
+            <option value="malta">malta</option>
+            <option value="maltainvest">maltainvest</option>
+            <option value="svg">svg</option>
+            <option value="virtual">virtual</option>
+            <option value="vanuatu">vanuatu</option>
+            <option value="champion">champion</option>
+            <option value="champion-virtual">champion-virtual</option>
+        </select>
+    </div>
+    <div id="droptown2"></div>
+    <div id="price_box">
+
+    </div>
+
+    <script type="application/javascript">
+
+        var firstListVal = '';
+        var secondListVal = '';
+        var secondListData = [];
+        var previousAsk = 0
+        var ws = new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=1089');
+
+
+        function firstListFunc() {
+            firstListVal = document.getElementById("firstList").value;
+
+            ws.send(JSON.stringify({ active_symbols: "brief", product_type: "basic", landing_company: firstListVal }));
+        }
+
+        function secondListFunc() {
+            secondListVal = document.getElementById("secondList").value;
+            if (secondListVal !== '') ws.send(JSON.stringify({ ticks: secondListVal, "subscribe": 1 }));
+        }
+
+        ws.onmessage = function(msg) {
+            let option = '';
+            var Fulldata = JSON.parse(msg.data);
+            
+
+            if(Fulldata.msg_type == "active_symbols"){
+                
+                secondListData = [...Fulldata?.active_symbols]
+            }else if(Fulldata.msg_type == "tick"){
+                
+                let {tick} = Fulldata
+                document.getElementById("price_box").innerHTML = tick?.ask
+                
+                if(tick.ask > previousAsk){
+
+                    document.getElementById("price_box").style.backgroundColor  = "green"
+                    previousAsk = tick.ask
+
+                }else if(tick.ask > previousAsk){
+                    document.getElementById("price_box").style.backgroundColor  = "red"
+                    previousAsk = tick.ask
+                }else{
+                    document.getElementById("price_box").style.backgroundColor  = "grey"
+                    previousAsk = tick.ask
+                }
+
+            }
+            
+            if(secondListData.length > 0){
+                secondListData.forEach((element, index, array) => {
+                    option += `<option value="${element.symbol}">${element.display_name}</option>`
+                });
+            }else{
+                option = `<option value=" ">No Data Found</option>`
+            }
+            let secondDropdownHTML = `<select id="secondList" onchange="secondListFunc()">${option}/select>`;
+
+            document.getElementById("droptown2").innerHTML = secondDropdownHTML;
+        };
+    </script>
+</body>
+</html>
