@@ -2,15 +2,15 @@
 var socket = io.connect('http://localhost:4000');
 
 //  Query DOM
-var message = document.getElementById("message"),
-  handle = document.getElementById("handle "),
-  btn = document.getElementById("send"),
-  output = document.getElementById("output"),
-  feedback = document.getElementbyId("feedback ");
+var message = document.getElementById('message'),
+  handle = document.getElementById('handle'),
+  btn = document.getElementById('send'),
+  output = document.getElementById('output'),
+  feedback = document.getElementbyId('feedback');
 
 // Emit events
-btn.addEventListener("click", function () {
-  socket.emit("chat", {
+btn.addEventListener('click', function () {
+  socket.emit('chat', {
     message: message.value,
     handle: handle.value,
   });
