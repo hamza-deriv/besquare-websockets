@@ -4,8 +4,8 @@ socket.addEventListener('open', () => {
   socket.send('New user joined the chat');
 });
 
-socket.addEventListener('message', (event) => {
-  const message = event.data;
+socket.addEventListener('message', async(event) => {
+  const message = await event.data.text().then(txt=> txt)  
   const chatWindow = document.getElementById('chat-window');
   const newMessage = document.createElement('div');
   newMessage.innerText = message;
