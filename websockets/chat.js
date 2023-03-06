@@ -1,51 +1,30 @@
-// import { WebSocket } from 'ws';
+let url = location.host == 'localhost' ?
+  'ws://localhost:8080/ws' : location.host == 'javascript.local' ?
+  `ws://javascript.local/article/websocket/chat/ws` : // dev integration with local site
+  `wss://javascript.info/article/websocket/chat/ws`; // prod integration with javascript.info
 
-// var message = document.getElementById('message'),
-//   handle = document.getElementById('handle'),
-//   btn = document.getElementById('send'),
-//   output = document.getElementById('output'),
-//   feedback = document.getElementbyId('feedback');
+let socket = new WebSocket(url);
 
-let ws = new WebSocket("ws://localhost:8080");
+// send message from the form
+document.forms.publish.onsubmit = function() {
+  let outgoingMessage = this.message.value;
 
-// ws.on('error', console.error);
-
-// ws.on('open', function open() {
-//   ws.send('something');
-// });
-
-ws.onopen = function () {
-  ws.send("Server Started in client");
+  socket.send(outgoingMessage);
+  return false;
 };
 
-// btn.addEventListener("click", function () {
-//     alert('clicked')
-// //   message({
-// //     message: message.value,
-// //     handle: handle.value,
-// //   });
-// //   message.value = "";
-// });
-
-ws.onmessage = function (e) {
-    console.log(e)
-  ws.send("Message something from client", e);
+// handle incoming messages
+socket.onmessage = function(event) {
+   console.log(event)
+  let incomingMessage = event.data;
+  showMessage(incomingMessage);
 };
 
-// ws.onclose = function (e) {
-//     // console.log(e)
-//   ws.send("Server Stopped from client");
-// };
+socket.onclose = event => console.log(`Closed ${event.code}`);
 
-ws.onclose = function(event) {
-    if (event.wasClean) {
-      alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
-    } else {
-      // e.g. server process killed or network down
-      // event.code is usually 1006 in this case
-      alert('[close] Connection died');
-    }
-  };
-// ws.on('message', function message(data) {
-//   console.log('received: %s', data);
-// });
+// show message in div#messages
+function showMessage(message) {
+  let messageElem = document.createElement('div');
+  messageElem.textContent = message;
+  document.getElementById('messages').prepend(messageElem);
+}
