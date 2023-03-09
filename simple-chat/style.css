@@ -1,6 +1,11 @@
 body {
     font-family: sans-serif;
   }
+
+  #container {
+    position: relative;
+    left: 15px;
+  }
   
   #chat-window {
     width: 400px;
